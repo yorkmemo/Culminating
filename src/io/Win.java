@@ -20,6 +20,8 @@ public abstract class Win {
     //todo: Groups (like id)  .group("alien");
     //todo: load font file
 
+    //todo: item subclasses ItemCircle etc
+
     //todo: Sys.isMac  Sys.isWindows  Sys.isLinux
 
     //todo: implement Backgroundable interface (is interface needed?)
@@ -62,6 +64,10 @@ public abstract class Win {
     todo:Net.message()
 
     todo: flyOutLeft();
+
+    todo: rename sleep() as delay()
+
+    todo: bind Text to variables (String, int, double)
 
     todo:Net.connect()
 
@@ -325,6 +331,10 @@ public abstract class Win {
 
     public static Itemable images() {
         return dojoPane.images();
+    }
+
+    public static Itemable images(String filename) {
+        return dojoPane.images(filename);
     }
 
     public static Itemable texts() {

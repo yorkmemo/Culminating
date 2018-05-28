@@ -61,6 +61,11 @@ public class NullItem implements Itemable {
         return this;
     }
 
+    @Override
+    public Itemable onCollide(Itemable item, ItemEvent handler) {
+        return this;
+    }
+
 
     @Override
     public Itemable dir(double angle, double pps) {

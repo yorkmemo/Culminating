@@ -68,6 +68,8 @@ public class DojoPane {
     private ItemGroup rectangles = new ItemGroup("javafx.scene.shape.Rectangle");
     private ItemGroup texts = new ItemGroup("javafx.scene.text.Text");
     private ItemGroup images = new ItemGroup("javafx.scene.image.ImageView");
+    private Map<String, ItemGroup> imageMap = new HashMap<String, ItemGroup>();
+    private Map<String, ItemGroup> imageExcludeMap = new HashMap<String, ItemGroup>();
     private ItemGroup all = new ItemGroup();
 
     public DojoPane(Pane parentPane, double width, double height) {
@@ -104,7 +106,14 @@ public class DojoPane {
 
 
     private Item registerNode(Node node) {
+
         anchorPane.getChildren().add(node);
+
+        String filename = null;
+
+        if (node instanceof ImageView) {
+            filename = (String)node.getUserData();
+        }
 
         Item item = new Item(node);
 
@@ -118,6 +127,13 @@ public class DojoPane {
             texts.add(item);
         } else if (node instanceof ImageView) {
             images.add(item);
+
+            if (filename != null) {
+                if (!imageMap.containsKey(filename)) {
+                    imageMap.put(filename, new ItemGroup("javafx.scene.image.ImageView"));
+                }
+                imageMap.get(filename).add(item);
+            }
         }
 
         all.add(item);
@@ -138,8 +154,32 @@ public class DojoPane {
     private boolean remove(String id) {
 
         if (idMap.containsKey(id)) {
+            Item item = idMap.get(id);
+
+            if (idMap.get(id).getNode() instanceof ImageView) {
+
+
+               // ImageView iv = (ImageView)idMap.get(id).getNode();
+
+                if (imageMap.containsKey(item.getFileName())) {
+                    imageMap.get(idMap.get(id).getFileName()).remove(item);
+                }
+
+
+                images.remove(item);
+            } else if (idMap.get(id).getNode() instanceof Circle) {
+                circles.remove(item);
+            } else if (idMap.get(id).getNode() instanceof Rectangle) {
+                rectangles.remove(item);
+            } else if (idMap.get(id).getNode() instanceof Text) {
+                texts.remove(item);
+            }
+
+            all.remove(item);
+
             anchorPane.getChildren().remove(idMap.get(id).getNode());
             idMap.remove(id);
+
             return true;
         }
 
@@ -147,7 +187,7 @@ public class DojoPane {
     }
 
     boolean remove(Item item) {
-        if (item.getId() != null) return remove(item);
+        if (item.getId() != null) return remove(item.getId());
 
         return anchorPane.getChildren().remove(item.getNode());
     }
@@ -314,9 +354,11 @@ public class DojoPane {
         ImageView imageView = null;
         try {
             imageView = new ImageView(new Image(filename));
+            imageView.setUserData(filename);
         } catch (IllegalArgumentException e) {
             Output.error("Image file not found: " + filename);
             imageView = new ImageView(DEFAULT_IMAGE_FILE);
+            imageView.setUserData(DEFAULT_IMAGE_FILE);
         }
 
         imageView.setPreserveRatio(false);
@@ -351,6 +393,23 @@ public class DojoPane {
     public Itemable images() {
         return images;
     }
+
+    public Itemable images(String filename) {
+        if (imageMap.containsKey(filename)) {
+            return imageMap.get(filename);
+        }
+
+        return new NullItem();
+    }
+
+    public Itemable imagesNot(String filename) {
+        if (imageMap.containsKey(filename)) {
+            return imageExcludeMap.get(filename);
+        }
+
+        return new NullItem();
+    }
+
 
     public Itemable texts() {
         return texts;

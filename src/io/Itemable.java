@@ -16,6 +16,7 @@ public interface Itemable {
     Itemable onEdgeTop(ItemEvent handler);
     Itemable onEdgeBottom(ItemEvent handler);
     Itemable onCollide(String id, ItemEvent handler);
+    Itemable onCollide(Itemable item, ItemEvent handler);
     Itemable dir(double angle, double pps);
     Itemable dir(double angle);
     Itemable ranColor();

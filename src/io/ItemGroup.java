@@ -27,6 +27,10 @@ class ItemGroup implements Itemable {
         return items.size();
     }
 
+    LinkedList<Item> getItems() {
+        return items;
+    }
+
     @Override
     public Itemable stroke(Color color) {
         for (Item item : items) {
@@ -122,6 +126,15 @@ class ItemGroup implements Itemable {
     public Itemable onCollide(String id, ItemEvent handler) {
         for (Item item : items) {
             item.onCollide(id,handler);
+        }
+
+        return this;
+    }
+
+    @Override
+    public Itemable onCollide(Itemable item, ItemEvent handler) {
+        for (Item i : items) {
+            item.onCollide(i,handler);
         }
 
         return this;
@@ -538,6 +551,18 @@ class ItemGroup implements Itemable {
     public void remove() {
         for (Item item : items) {
             item.remove();
+        }
+
+        while (!items.isEmpty()) items.pop();
+    }
+
+    public void remove(Item item) {
+        for (Item itemCheck : items) {
+            if (itemCheck == item) {
+                items.remove(item);
+                item.remove();
+                return;
+            }
         }
     }
 

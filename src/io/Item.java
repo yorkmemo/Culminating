@@ -29,10 +29,7 @@ public class Item implements Itemable {
     private double dx, dy, dr, da; //deltas x, y, rotate, alpha
     private double dir, speed;
 
-    private ItemEvent collideEvent = null;
-    private Item collideTarget = null;
-
-    private boolean collideFlag;
+    private LinkedList<Collision> collisions = new LinkedList<>();
 
     private ItemEvent edgeHandler = null;
     private ItemEvent edgeLeftHandler = null;
@@ -47,6 +44,7 @@ public class Item implements Itemable {
     private int waiting = 0;
 
     private boolean circle, rect, shape, img, text;
+    private String fileName = null;
 
     public Item(Node node) {
         this.node = node;
@@ -58,8 +56,17 @@ public class Item implements Itemable {
         rect = node instanceof Rectangle;
         text = node instanceof Text;
         img = node instanceof ImageView;
+
+        if (img) {
+            fileName = ((Item)node.getUserData()).getFileName();
+        }
      //   queue ;
     }
+
+    String getFileName() {
+        return fileName;
+    }
+
 
 
     public String getType() {
@@ -85,17 +92,14 @@ public class Item implements Itemable {
             else node.setLayoutY(node.getLayoutY() + dy);
         }
 
-        if (collideEvent != null && collideTarget != null) {
+        if (collisions.size() > 0) {
          //   System.out.println("-"+node.getBoundsInParent());
           //  System.out.println("+"+collideTarget.node.getBoundsInParent());
-            if (collideTarget.node.getBoundsInParent().intersects(node.getBoundsInParent())) {
-                if (!collideFlag) {
-                    collideEvent.handle(this);
-                    collideFlag = true;
-                }
-            } else {
-                collideFlag = false;
+
+            for (Collision collision : collisions) {
+                collision.check(node);
             }
+
         }
 
        // System.out.println(node.getClass().getName() + "|" + edge);
@@ -106,6 +110,7 @@ public class Item implements Itemable {
             //double w = Win.getWidth();
 
             if (node.getParent() == null) return;  //node has been removed
+
 
             double w = node.getParent().getBoundsInParent().getWidth();
             double h = node.getParent().getBoundsInParent().getHeight();
@@ -442,8 +447,18 @@ public class Item implements Itemable {
         if (waiting > 0) {
             queue.add(()-> onCollide(id, handler));
         } else {
-            collideEvent = handler;
-            collideTarget = (Item)dojo.id(id);
+            collisions.add(new Collision(dojo.id(id),handler));
+        }
+        return this;
+    }
+
+    @Override
+    public Itemable onCollide(Itemable item, ItemEvent handler) {
+        if (waiting > 0) {
+            queue.add(()-> onCollide(item, handler));
+        } else {
+           // System.out.println("adding collision");
+            collisions.add(new Collision(item,handler));
         }
         return this;
     }
@@ -681,6 +696,7 @@ public class Item implements Itemable {
             } else if (rect) {
                 ((Rectangle) node).setWidth(width);
             } else if (img) {
+                ((ImageView) node).setPreserveRatio(true);
                 ((ImageView) node).setFitWidth(width);
             } else if (text) {
                 double cur = ((Text) node).getLayoutBounds().getWidth();
@@ -715,6 +731,7 @@ public class Item implements Itemable {
             } else if (rect) {
                 ((Rectangle) node).setHeight(height);
             } else if (img) {
+                ((ImageView) node).setPreserveRatio(true);
                 ((ImageView) node).setFitHeight(height);
             } else if (text) {
                 double cur = ((Text) node).getLayoutBounds().getHeight();
